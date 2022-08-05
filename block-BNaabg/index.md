@@ -127,7 +127,7 @@ To update a user, we will listen for PUT request on `/users?username=xyz` with s
 
 - create a route to handle update operation
 - grab the username from querystring
-- open the file(`fs.open`) using username.json from users directory
+- open the fil__dirname ,"/users/e(`fs.open`) using username.json from users directory
 - use `r+` flag this time, r+ ensures that file already exists
 - remove the content of file using `fs.ftruncate`
 - add the updated content using `fs.writeFile`
