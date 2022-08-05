@@ -31,9 +31,9 @@ function hr_2(req, res) {
         })
         req.on('end', () => {
             res.writeHead(201, { 'Content-Type': 'application/x-www-form-urlencoded' });
-            let parsedData = qs.parse(store);
 
-            res.end(store, req.statusCode, parsedData);
+            let parsedData = qs.parse(store);
+            res.end(JSON.stringify(parsedData));
         })
 
     }
@@ -85,7 +85,8 @@ function hr_4(req, res) {
     if (dataFormate === 'application/json' || dataFormate === 'application/x-www-form-urlencoded' ) {
         req.on('end', () => {
             res.writeHead(200, {"content-type": "text/html"});
-            res.end(store);
+            var jsonData = JSON.parse(store);
+            res.end(`<h2>${jsonData.name} </h2> <p>${jsonData.Email} </p>`);
         })
 
     }
@@ -108,9 +109,9 @@ function hr_5(req, res) {
     })
     if (dataFormate === 'application/json' || dataFormate === 'application/x-www-form-urlencoded' ) {
         req.on('end', () => {
+            let parsedData = qs.parse(store);
             res.writeHead(200, {"content-type": "text/html"});
-            let parsedData = (qs.store);
-            console.log(JSON.stringify(parsedData));
+            res.end(`<p>${parsedData.email}</p>`);
         })
     }
 
