@@ -1,65 +1,82 @@
 var http = require('http');
-var url = require('url');
-var path = require('path');
-var qs = require('querystring');
 var fs = require('fs');
+var url = require('url');
+
+var usersPath = __dirname + '/users/';
 
 function handleRequest(req, res) {
-    let parsedUrl = url.parse(req.url);
+    let parsedUrl = url.parse(req.url, true);
     let pathname = parsedUrl.pathname;
+
     var store = '';
     req.on('data', (chunk) => {
         store += chunk;
     })
 
     req.on('end', () => {
-
-        if (req.method === 'GET' && pathname === '/users') {
-            fs.readFile(__dirname , "/users/", (err, user) => {
-                req.end(qs.parse(store).user);
-
-            });
-
-        } else if (req.method === 'POST' && pathname === '/users') {
-
-            var userDir = path.join(__dirname, "users/");
-
+        // create user 
+        if (req.url === '/users' && req.method === 'POST') {
             var username = JSON.parse(store).username;
 
-            fs.open(userDir + username + ".json", "wx", (err, fd) => {
+            fs.open(usersPath + username + '.json', 'wx', (err, fd) => {
+                if (err) throw err;
                 fs.writeFile(fd, store, (err) => {
-
-                    fs.close(fd, (err) => {
-                        res.end(`${username} successfully created`);
+                    if (err) return console.log(err);
+                    fs.close(fd, () => {
+                      return  res.end(`${username}  Created successfully `);
                     });
-                });
-            });
+                })
+            })
+
+        } //read User Operation 
+         if(pathname === '/users' && req.method === 'GET') {
+            var username = parsedUrl.query.username;
+
+            fs.readFile(usersPath + username + '.json', (err, content) => {
+                if (err) return console.log(err);
+                res.setHeader('Content-Type', 'application/json');
+              return  res.end(content);
+            })
+
+        } 
+        // update user
+        if(pathname === '/users' && req.method === 'PUT'){
+            var username = parsedUrl.query.username;
+            fs.open(usersPath + username + '.json', 'r+', (err,fd) => {
+                if(err) return console.error(err);
+
+                fs.ftruncate(fd,(err) => {
+                    if(err) return console.error(err);
+                    fs.writeFile(fd,store,(err) => {
+                    if(err) return console.error(err);
+                        fs.close(fd,()=> {
+                           return res.end(`${username} updated suscessfully`)
+                        })
+                    })
+                })
+            })
+
         }
+        // delete operation
+        if(pathname === '/users' && req.method === 'DELETE') {
+            var username = parsedUrl.query.username;
 
-        else if (req.method === 'PUT' && pathname === '/users') {
-
-            let updatedName = qs.parse(username)
-
-            req.end(updatedName);
-
-        } else if (req.method === 'DELETE' && pathname === '/users') {
-
-            fs.readFile(__dirname ,"/users/", (err, user) => {
-                fs.unlink()
-                req.end(qs.parse(store).user);
-
-            });
-          
-        } else {
+            fs.unlink(usersPath + username + '.json',(err) => {
+                if(err) return console.error(err);
+               return res.end(`${username} deleted suscessfully`)
+            })
+            
+        }
+        
             res.writeHead(404, { "content-type": "text/plain" });
-            res.end('Page not found : 404')
-        }
+            res.end('Page not found')
+    
 
 
     });
 
 }
 var server = http.createServer(handleRequest);
-server.listen(5678,()=> {
+server.listen(5678, () => {
     console.log('listening on port 5678...');
 });
